@@ -2,16 +2,12 @@ import { Component, OnInit, ViewChildren, QueryList } from '@angular/core';
 import { RouteComponent } from '../route/route.component';
 
 @Component({
-  selector: 'lib-router',
-  template: `
-    <p>
-      router works!
-    </p>
-  `,
+  selector: 'router',
+  template: '',
   styles: []
 })
 export class RouterComponent implements OnInit {
-  @ViewChildren(RouteComponent, { read: RouteComponent }) routes: QueryList<RouteComponent>;
+  @ViewChildren(RouteComponent) routes: QueryList<RouteComponent>;
 
   constructor() { }
 
