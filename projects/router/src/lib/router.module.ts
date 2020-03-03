@@ -1,12 +1,17 @@
 import { NgModule } from '@angular/core';
 import { RouterComponent } from './router.component';
+import { RouteComponent } from './route/route.component';
+import { LinkComponent } from './link/link.component';
 
-
+const components = [
+  RouterComponent,
+  RouteComponent,
+  LinkComponent
+];
 
 @NgModule({
-  declarations: [RouterComponent],
-  imports: [
-  ],
-  exports: [RouterComponent]
+  declarations: [],
+  imports: [components],
+  exports: [components]
 })
-export class RouterModule { }
+export class RouterModule {}

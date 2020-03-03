@@ -20,6 +20,7 @@
     ],
     "paths": {
       "@ngconf/router": [
+        "projects/router/src/public-api.ts",
         "dist/router/router",
         "dist/router"
       ]
