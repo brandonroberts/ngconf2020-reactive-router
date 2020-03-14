@@ -1,5 +1,5 @@
 import { NgModule } from '@angular/core';
-import { RouterComponent } from './router.component';
+import { RouterComponent } from './router/router.component';
 import { RouteComponent } from './route/route.component';
 import { LinkTo } from './link/link.component';
 
@@ -11,7 +11,6 @@ const components = [
 
 @NgModule({
   declarations: [components],
-  imports: [],
   exports: [components]
 })
 export class RouterModule {}

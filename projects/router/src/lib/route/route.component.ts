@@ -1,37 +1,57 @@
-import { Component, OnInit, Input, Type, Injector, ɵrenderComponent as renderComponent, ElementRef, ViewChild } from '@angular/core';
-import { Location } from '@angular/common';
+import {
+  Component,
+  OnInit,
+  Input,
+  Type,
+  Injector,
+  ɵrenderComponent as renderComponent,
+  ElementRef,
+  ViewChild
+} from "@angular/core";
+import { tap, distinctUntilChanged } from "rxjs/operators";
+import { Location } from "@angular/common";
+import { RouterComponent } from "../router/router.component";
 
 @Component({
-  selector: 'route',
-  template: '<div #outlet></div>'
+  selector: "route",
+  template: "<div #outlet></div>"
 })
 export class RouteComponent implements OnInit {
-  @ViewChild('outlet', { read: ElementRef, static: true }) outlet: ElementRef;
+  @ViewChild("outlet", { read: ElementRef, static: true }) outlet: ElementRef;
   @Input() path: string;
   @Input() component: Type<any>;
-  private rendered: any;
+  private rendered = false;
 
-  constructor(private location: Location, private injector: Injector) {
-    this.location.onUrlChange(url => {
-      this.shouldRender(url);
-    });
+  constructor(
+    private injector: Injector,
+    private router: RouterComponent,
+    private location: Location
+  ) {}
+
+  @Input() set render(shouldRender: boolean) {
+    if (shouldRender && !this.rendered) {
+      this.rendered = renderComponent(this.component, {
+        host: this.outlet.nativeElement,
+        injector: this.injector
+      });
+    } else if (!shouldRender && this.rendered) {
+      if (this.outlet.nativeElement.children) {
+        Array.from(this.outlet.nativeElement.children).forEach(child =>
+          this.outlet.nativeElement.removeChild(child)
+        );
+        this.rendered = null;
+      }
+    }
   }
 
   ngOnInit(): void {
-    this.shouldRender(this.location.path());
-  }
-
-  shouldRender(url: string) {
-    if (!this.rendered && this.location.normalize(url) === this.location.normalize(this.path)) {
-      this.rendered = renderComponent(this.component, {
-        host: this.outlet.nativeElement,
-        injector: this.injector,
-      });
-    } else {
-      if (this.outlet.nativeElement.children) {
-        Array.from(this.outlet.nativeElement.children).forEach(child => this.outlet.nativeElement.removeChild(child));
-        this.rendered = null;
-      }
-    }    
+    this.router.url$
+      .pipe(
+        distinctUntilChanged(),
+        tap(url => {
+          this.render = url === this.location.normalize(this.path);
+        })
+      )
+      .subscribe();
   }
 }

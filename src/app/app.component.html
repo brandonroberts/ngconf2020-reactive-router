@@ -4,5 +4,7 @@
 <a [linkTo]="'/'">Home</a><br/>
 <a [linkTo]="'/about'">About</a>
 
-<route path="/" [component]="HomeComponent"></route>
-<route path="/about" [component]="AboutComponent"></route>
+<router>
+  <route path="/" [component]="HomeComponent"></route>
+  <route path="/about" [component]="AboutComponent"></route>
+</router>

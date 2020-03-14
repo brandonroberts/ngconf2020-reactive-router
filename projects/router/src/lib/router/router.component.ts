@@ -1,21 +1,13 @@
-import { Component, OnInit, ViewChildren, QueryList } from '@angular/core';
-import { RouteComponent } from '../route/route.component';
+import { Component } from '@angular/core';
+import { RouterService } from '../router.service';
+
 
 @Component({
   selector: 'router',
-  template: '',
-  styles: []
+  template: '<ng-content></ng-content>'
 })
-export class RouterComponent implements OnInit {
-  @ViewChildren(RouteComponent) routes: QueryList<RouteComponent>;
-
-  constructor() { }
-
-  ngOnInit(): void {
-  }
-
-  ngAfterViewInit(): void {
-    console.log(this.routes)
-  }
-
+export class RouterComponent {
+  url$ = this.router.url$;
+ 
+  constructor(private router: RouterService) {}
 }
