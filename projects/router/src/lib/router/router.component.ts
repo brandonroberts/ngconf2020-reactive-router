@@ -1,86 +1,92 @@
-import {
-  Component,
-  ViewChild,
-  ElementRef,
-  ɵrenderComponent as renderComponent,
-  Injector,
-  Type
-} from "@angular/core";
+import { Component, SkipSelf, Optional } from "@angular/core";
 import { Location } from "@angular/common";
 import { match } from "path-to-regexp";
 
-import { combineLatest, Subject } from "rxjs";
-import { tap, takeUntil, distinctUntilChanged } from "rxjs/operators";
+import { combineLatest, Subject, BehaviorSubject } from "rxjs";
+import { tap, takeUntil, distinctUntilChanged, scan } from "rxjs/operators";
 
-import { Router } from "../router.service";
+import { Router, Route } from "../router.service";
 import { RouteParams } from "../route-params.service";
+import { pathToRegexp } from "path-to-regexp";
 
 @Component({
   selector: "router",
   template: `
     <ng-content></ng-content>
-    <div #outlet></div>
   `
 })
 export class RouterComponent {
-  @ViewChild("outlet", { read: ElementRef, static: true }) outlet: ElementRef;
-
   private destroy$ = new Subject();
-  private lastMatch: RegExpExecArray | false;
+  private _activeRoute$ = new BehaviorSubject<Route<any>>(null);
+  activeRoute$ = this._activeRoute$.pipe(distinctUntilChanged());
+
+  private _routes$ = new BehaviorSubject<Route<any>[]>([]);
+  routes$ = this._routes$.pipe(
+    scan((routes, route) => {
+      routes = routes.concat(route);
+      routes.sort((a, b) => (a.path.length > b.path.length ? 1 : 0));
+
+      return routes;
+    })
+  );
+
+  public basePath = "";
+
+  // support multiple "routers"
+  // router (base /)
+  // blog(.*?)
+  // router (base /blog)
+  // post1(blog/post1/(.*?)
+  // post2
+  // post3
 
   constructor(
     private router: Router,
-    private injector: Injector,
-    private routeParams: RouteParams
+    private location: Location,
+    private routeParams: RouteParams,
+    @SkipSelf() @Optional() private parentRouterComponent: RouterComponent
   ) {}
 
   ngOnInit() {
-    combineLatest(this.router.routes$, this.router.url$)
+    if (this.parentRouterComponent) {
+      this.basePath = `${this.parentRouterComponent.basePath}${this.basePath}`;
+    }
+
+    combineLatest(this.routes$, this.router.url$)
       .pipe(
         takeUntil(this.destroy$),
-        tap(([routes, url]) =>
-          routes.forEach(route => {
+        tap(([routes, url]: [Route<any>[], string]) => {
+          for (const route of routes) {
             const matchedRoute = route.matcher
-              ? route.matcher.exec(url)
-              : false;
+              ? route.matcher.exec(url) : false;
+            // const pathInfo = match(route.path)(url);
 
             if (matchedRoute) {
               const pathInfo = match(route.path)(url);
+              this.basePath = pathInfo ? pathInfo.path : this.basePath || route.path;
 
               const routeParams = pathInfo ? pathInfo.params : {};
+              this.setActiveRoute(route);
               this.routeParams.next(routeParams || {});
 
-              if (matchedRoute !== this.lastMatch) {
-                this.lastMatch = matchedRoute;
-
-                if (route.loadComponent) {
-                  route.loadComponent().then(component => {
-                    this.renderView(
-                      component,
-                      this.outlet.nativeElement,
-                      this.injector
-                    );
-                  });
-                } else {
-                  this.renderView(
-                    route.component,
-                    this.outlet.nativeElement,
-                    this.injector
-                  );
-                }
-              }
+              break;
             }
-          })
-        )
+          }
+        })
       )
       .subscribe();
   }
 
-  renderView(component: Type<any>, host: any, injector?: Injector) {
-    renderComponent(component, {
-      host,
-      injector
-    });
+  registerRoute<T>(route: Route<T>) {
+    const normalizedPath = this.location.normalize(route.path);
+    const routeRegex = pathToRegexp(normalizedPath);
+    route.matcher = route.matcher || routeRegex;
+    this._routes$.next([route]);
+    return route;
+  }
+
+  setActiveRoute<T>(route: Route<T>) {
+    this._activeRoute$.next(route);
   }
 
   ngOnDestroy() {
