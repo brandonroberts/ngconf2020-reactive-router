@@ -3,13 +3,14 @@ import {
   ViewChild,
   ElementRef,
   ɵrenderComponent as renderComponent,
-  Injector
+  Injector,
+  Type
 } from "@angular/core";
 import { Location } from "@angular/common";
 import { match } from "path-to-regexp";
 
 import { combineLatest, Subject } from "rxjs";
-import { tap, takeUntil } from "rxjs/operators";
+import { tap, takeUntil, distinctUntilChanged } from "rxjs/operators";
 
 import { Router } from "../router.service";
 import { RouteParams } from "../route-params.service";
@@ -25,11 +26,11 @@ export class RouterComponent {
   @ViewChild("outlet", { read: ElementRef, static: true }) outlet: ElementRef;
 
   private destroy$ = new Subject();
+  private lastMatch: RegExpExecArray | false;
 
   constructor(
     private router: Router,
     private injector: Injector,
-    private location: Location,
     private routeParams: RouteParams
   ) {}
 
@@ -40,7 +41,7 @@ export class RouterComponent {
         tap(([routes, url]) =>
           routes.forEach(route => {
             const matchedRoute = route.matcher
-              ? route.matcher.exec(this.location.normalize(url))
+              ? route.matcher.exec(url)
               : false;
 
             if (matchedRoute) {
@@ -49,15 +50,37 @@ export class RouterComponent {
               const routeParams = pathInfo ? pathInfo.params : {};
               this.routeParams.next(routeParams || {});
 
-              renderComponent(route.component, {
-                host: this.outlet.nativeElement,
-                injector: this.injector
-              });
+              if (matchedRoute !== this.lastMatch) {
+                this.lastMatch = matchedRoute;
+
+                if (route.loadComponent) {
+                  route.loadComponent().then(component => {
+                    this.renderView(
+                      component,
+                      this.outlet.nativeElement,
+                      this.injector
+                    );
+                  });
+                } else {
+                  this.renderView(
+                    route.component,
+                    this.outlet.nativeElement,
+                    this.injector
+                  );
+                }
+              }
             }
           })
         )
       )
       .subscribe();
+  }
+
+  renderView(component: Type<any>, host: any, injector?: Injector) {
+    renderComponent(component, {
+      host,
+      injector
+    });
   }
 
   ngOnDestroy() {

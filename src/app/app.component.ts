@@ -11,6 +11,7 @@ import { Router } from '@ngconf/router';
 export class AppComponent {
   HomeComponent = HomeComponent;
   AboutComponent = AboutComponent;
+  lazyComponent = () => import('./lazy/lazy.component').then(m => m.LazyComponent);
 
   constructor(private router: Router) {}
 

@@ -4,9 +4,12 @@ import { BehaviorSubject } from 'rxjs';
 import { scan, distinctUntilChanged } from 'rxjs/operators';
 import { pathToRegexp } from "path-to-regexp";
 
-export interface Route {
+export type LoadComponent<T = any> = () => Promise<Type<T>>;
+
+export interface Route<T> {
   path: string;
-  component: Type<any>;
+  component?: Type<T>;
+  loadComponent?: LoadComponent<T>;
   matcher?: RegExp;
 }
 
@@ -23,7 +26,7 @@ export class Router {
   private _hash$ = new BehaviorSubject('');
   hash$ = this._hash$.pipe(distinctUntilChanged());
 
-  private _routes$ = new BehaviorSubject<Route[]>([]);
+  private _routes$ = new BehaviorSubject<Route<any>[]>([]);
   routes$ = this._routes$.pipe(scan((routes, route) => {
     routes = routes.concat(route);
     routes.sort((a, b) => a.path.length > b.path.length ? 1 : 0)
@@ -72,7 +75,7 @@ export class Router {
     this._hash$.next(hash);
   }
 
-  registerRoute(route: Route) {
+  registerRoute<T>(route: Route<T>) {
     const routeRegex = pathToRegexp(this.location.normalize(route.path));
     route.matcher = route.matcher || routeRegex;
     this._routes$.next([route]);

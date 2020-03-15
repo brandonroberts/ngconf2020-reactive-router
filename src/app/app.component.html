@@ -3,10 +3,12 @@
 
 <a [linkTo]="'/'">Home</a><br/>
 <a [linkTo]="'/about'">About</a><br/>
+<a [linkTo]="'/lazy'">Lazy</a><br/>
 <a [linkTo]="'/about/brandon'" [queryParams]="'test=1'">About 2</a>
 
 <router>
   <route path="/about/:me" [component]="AboutComponent"></route>
   <route path="/about" [component]="AboutComponent"></route>
+  <route path="/lazy" [loadComponent]="lazyComponent"></route>
   <route path="/" [component]="HomeComponent"></route>
 </router>
