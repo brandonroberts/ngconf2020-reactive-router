@@ -1,5 +1,5 @@
 import { Directive, HostBinding, HostListener, Input, Output, EventEmitter } from  '@angular/core';
-import { Location } from '@angular/common';
+import { Router } from '../router.service';
 
 /**
  * The LinkTo directive links to routes in your app
@@ -30,7 +30,7 @@ export class LinkTo {
   private _href: string;
   private _query: string;
 
-  constructor(private location: Location) {}
+  constructor(private router: Router) {}
 
   /**
    * Handles click events on the associated link
@@ -39,7 +39,7 @@ export class LinkTo {
   @HostListener('click', ['$event'])
   onClick(event) {
     if (!this._comboClick(event) && !this.target) {
-      this.location.go(this._href, this._query);
+      this.router.go(this._href, this._query);
 
       event.preventDefault();
     }
@@ -48,7 +48,7 @@ export class LinkTo {
   private _updateHref() {
     let path = this._cleanUpHref(this._href);
 
-    this.linkHref = this.location.prepareExternalUrl(path);
+    this.linkHref = this.router.getExternalUrl(path);
     this.hrefUpdated.emit(this.linkHref);
   }
 

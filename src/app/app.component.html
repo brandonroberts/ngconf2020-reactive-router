@@ -2,9 +2,11 @@
 <button (click)="goAbout()">About</button> -->
 
 <a [linkTo]="'/'">Home</a><br/>
-<a [linkTo]="'/about'">About</a>
+<a [linkTo]="'/about'">About</a><br/>
+<a [linkTo]="'/about/brandon'" [queryParams]="'test=1'">About 2</a>
 
 <router>
-  <route path="/" [component]="HomeComponent"></route>
+  <route path="/about/:me" [component]="AboutComponent"></route>
   <route path="/about" [component]="AboutComponent"></route>
+  <route path="/" [component]="HomeComponent"></route>
 </router>

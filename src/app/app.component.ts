@@ -1,7 +1,7 @@
 import { Component } from '@angular/core';
 import { HomeComponent } from './home/home.component';
 import { AboutComponent } from './about/about.component';
-import { Location } from '@angular/common';
+import { Router } from '@ngconf/router';
 
 @Component({
   selector: 'app-root',
@@ -12,13 +12,13 @@ export class AppComponent {
   HomeComponent = HomeComponent;
   AboutComponent = AboutComponent;
 
-  constructor(private location: Location) {}
+  constructor(private router: Router) {}
 
   goHome() {
-    this.location.go('/');
+    this.router.go('/');
   }
 
   goAbout() {
-    this.location.go('/about');
+    this.router.go('/about');
   }
 }
