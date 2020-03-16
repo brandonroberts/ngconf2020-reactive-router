@@ -11,10 +11,10 @@ export class AboutComponent implements OnInit {
   me$ = this.routeParams.pipe(map(params => params['me']));
   
   constructor(private router: Router, private routeParams: RouteParams) {
-    router.url$.subscribe(url => { console.log('rurl', url);});
-    router.queryParams$.subscribe(qp => { console.log('rqp', qp);});
-    router.hash$.subscribe(hash => { console.log('rh', hash);});
-    routeParams.subscribe(rp => console.log('rp', rp));
+    // router.url$.subscribe(url => { console.log('rurl', url);});
+    // router.queryParams$.subscribe(qp => { console.log('rqp', qp);});
+    // router.hash$.subscribe(hash => { console.log('rh', hash);});
+    // routeParams.subscribe(rp => console.log('rp', rp));
   }
 
   ngOnInit(): void {

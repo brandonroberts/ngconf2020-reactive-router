@@ -9,6 +9,7 @@ import { Router, Route } from "../router.service";
 import { RouteParams } from "../route-params.service";
 import { pathToRegexp } from "path-to-regexp";
 
+let count = 0;
 @Component({
   selector: "router",
   template: `
@@ -24,10 +25,10 @@ export class RouterComponent {
   routes$ = this._routes$.pipe(
     scan((routes, route) => {
       routes = routes.concat(route);
-      routes.sort((a, b) => (a.path.length > b.path.length ? 1 : 0));
 
       return routes;
-    })
+    }),
+
   );
 
   public basePath = "";
@@ -44,31 +45,32 @@ export class RouterComponent {
     private router: Router,
     private location: Location,
     private routeParams: RouteParams,
-    @SkipSelf() @Optional() private parentRouterComponent: RouterComponent
+    @SkipSelf() @Optional() public parentRouterComponent: RouterComponent
   ) {}
 
   ngOnInit() {
-    if (this.parentRouterComponent) {
-      this.basePath = `${this.parentRouterComponent.basePath}${this.basePath}`;
-    }
 
     combineLatest(this.routes$, this.router.url$)
       .pipe(
         takeUntil(this.destroy$),
         tap(([routes, url]: [Route<any>[], string]) => {
-          for (const route of routes) {
-            const matchedRoute = route.matcher
-              ? route.matcher.exec(url) : false;
-            // const pathInfo = match(route.path)(url);
+          for(const route of routes) {
+            let matchedRoute = route.matcher
+              ? route.matcher.exec(url)
+              : false;
 
-            if (matchedRoute) {
+            // check to see if a greedy match will find something
+            const secondaryMatch = pathToRegexp(`${route.path}(.*)`);
+            const secondaryMatchedRoute = secondaryMatch.exec(url);
+
+            if (matchedRoute || secondaryMatchedRoute) {
+              const useRoute = matchedRoute || secondaryMatchedRoute;
               const pathInfo = match(route.path)(url);
-              this.basePath = pathInfo ? pathInfo.path : this.basePath || route.path;
+              this.basePath = useRoute[0] || '/';
 
               const routeParams = pathInfo ? pathInfo.params : {};
               this.setActiveRoute(route);
               this.routeParams.next(routeParams || {});
-
               break;
             }
           }

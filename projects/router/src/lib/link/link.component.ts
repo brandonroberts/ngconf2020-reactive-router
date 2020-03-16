@@ -1,5 +1,6 @@
-import { Directive, HostBinding, HostListener, Input, Output, EventEmitter } from  '@angular/core';
+import { Directive, HostBinding, HostListener, Input, Output, EventEmitter, Optional } from  '@angular/core';
 import { Router } from '../router.service';
+import { RouterComponent } from '../router/router.component';
 
 /**
  * The LinkTo directive links to routes in your app
@@ -30,7 +31,7 @@ export class LinkTo {
   private _href: string;
   private _query: string;
 
-  constructor(private router: Router) {}
+  constructor(private router: Router, @Optional() private routerComp: RouterComponent) {}
 
   /**
    * Handles click events on the associated link
@@ -47,6 +48,11 @@ export class LinkTo {
 
   private _updateHref() {
     let path = this._cleanUpHref(this._href);
+
+    if (path.substr(0, 1) !== '/') {
+      path = this.routerComp ? `${this.routerComp.basePath}/${path}` : path;
+      this._href = path;
+    }
 
     this.linkHref = this.router.getExternalUrl(path);
     this.hrefUpdated.emit(this.linkHref);

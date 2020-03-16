@@ -11,7 +11,7 @@ import {
 import { LoadComponent, Route } from "../router.service";
 import { RouterComponent } from "../router/router.component";
 
-import { tap, filter } from "rxjs/operators";
+import { tap, filter, distinctUntilChanged } from "rxjs/operators";
 
 @Component({
   selector: "route",
@@ -30,8 +30,11 @@ export class RouteComponent implements OnInit {
   constructor(private injector: Injector, private router: RouterComponent) {}
 
   ngOnInit(): void {
+    // account for root level routes, don't add the basePath
+    const path = this.router.parentRouterComponent ? this.router.basePath + this.path : this.path;
+
     this.route = this.router.registerRoute({
-      path: this.router.basePath + this.path,
+      path,
       component: this.component,
       loadComponent: this.loadComponent
     });
@@ -39,6 +42,7 @@ export class RouteComponent implements OnInit {
     this.router.activeRoute$
       .pipe(
         filter(activeRoute => !!activeRoute),
+        distinctUntilChanged(),
         tap(currentRoute => {
           if (!this.rendered && currentRoute === this.route) {
             this.loadAndRenderRoute(currentRoute);
