@@ -9,7 +9,6 @@ import { Router, Route } from "../router.service";
 import { RouteParams } from "../route-params.service";
 import { pathToRegexp } from "path-to-regexp";
 
-let count = 0;
 @Component({
   selector: "router",
   template: `
@@ -27,8 +26,7 @@ export class RouterComponent {
       routes = routes.concat(route);
 
       return routes;
-    }),
-
+    })
   );
 
   public basePath = "";
@@ -49,34 +47,52 @@ export class RouterComponent {
   ) {}
 
   ngOnInit() {
-
     combineLatest(this.routes$, this.router.url$)
       .pipe(
         takeUntil(this.destroy$),
         tap(([routes, url]: [Route<any>[], string]) => {
-          for(const route of routes) {
-            let matchedRoute = route.matcher
-              ? route.matcher.exec(url)
-              : false;
+          let routeToRender = null;
+          for (const route of routes) {
+            routeToRender = this.findRouteMatch(route, url);
 
-            // check to see if a greedy match will find something
-            const secondaryMatch = pathToRegexp(`${route.path}(.*)`);
-            const secondaryMatchedRoute = secondaryMatch.exec(url);
-
-            if (matchedRoute || secondaryMatchedRoute) {
-              const useRoute = matchedRoute || secondaryMatchedRoute;
-              const pathInfo = match(route.path)(url);
-              this.basePath = useRoute[0] || '/';
-
-              const routeParams = pathInfo ? pathInfo.params : {};
-              this.setActiveRoute(route);
-              this.routeParams.next(routeParams || {});
+            if (routeToRender) {
+              this.setRoute(url, route, routeToRender);
               break;
             }
+          }
+
+          if (!routeToRender) {
+            this.setActiveRoute(null);
           }
         })
       )
       .subscribe();
+  }
+
+  findRouteMatch(route: Route<any>, url: string) {
+    let matchedRoute = route.matcher ? route.matcher.exec(url) : null;
+
+    if (matchedRoute) {
+      return matchedRoute;
+    }
+
+    // check to see if a greedy match will find something
+    const secondaryMatch = pathToRegexp(`${route.path}(.*)`);
+    const secondaryMatchedRoute = secondaryMatch.exec(url);
+
+    if (secondaryMatchedRoute) {
+      return secondaryMatchedRoute;
+    }
+  }
+
+  setRoute(url: string, route: Route<any>, matchedRoute: RegExpExecArray) {
+    const useRoute = matchedRoute;
+    const pathInfo = match(route.path)(url);
+    this.basePath = useRoute[0] || "/";
+
+    const routeParams = pathInfo ? pathInfo.params : {};
+    this.setActiveRoute(route);
+    this.routeParams.next(routeParams || {});
   }
 
   registerRoute<T>(route: Route<T>) {

@@ -14,7 +14,7 @@ import { RouterComponent } from '../router/router.component';
 @Directive({ selector: '[linkTo]' })
 export class LinkTo {
   @Input() target: string;
-  @HostBinding('attr.href') linkHref;
+  @HostBinding('href') linkHref;
 
   @Input() set linkTo(href: string){
     this._href = href;

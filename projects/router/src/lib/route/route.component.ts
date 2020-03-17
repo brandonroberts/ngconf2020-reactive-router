@@ -41,7 +41,6 @@ export class RouteComponent implements OnInit {
 
     this.router.activeRoute$
       .pipe(
-        filter(activeRoute => !!activeRoute),
         distinctUntilChanged(),
         tap(currentRoute => {
           if (!this.rendered && currentRoute === this.route) {
