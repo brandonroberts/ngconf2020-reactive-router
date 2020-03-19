@@ -6,7 +6,7 @@ import { combineLatest, Subject, BehaviorSubject } from "rxjs";
 import { tap, takeUntil, distinctUntilChanged, scan } from "rxjs/operators";
 
 import { Router, Route } from "../router.service";
-import { RouteParams } from "../route-params.service";
+import { Params } from "../route-params.service";
 import { pathToRegexp } from "path-to-regexp";
 
 @Component({
@@ -29,6 +29,9 @@ export class RouterComponent {
     })
   );
 
+  private _routeParams$ = new BehaviorSubject<Params>({});
+  routeParams$ = this._routeParams$.asObservable();
+
   public basePath = "";
 
   // support multiple "routers"
@@ -42,7 +45,6 @@ export class RouterComponent {
   constructor(
     private router: Router,
     private location: Location,
-    private routeParams: RouteParams,
     @SkipSelf() @Optional() public parentRouterComponent: RouterComponent
   ) {}
 
@@ -90,9 +92,9 @@ export class RouterComponent {
     const pathInfo = match(route.path)(url);
     this.basePath = useRoute[0] || "/";
 
-    const routeParams = pathInfo ? pathInfo.params : {};
+    const routeParams: Params = pathInfo ? pathInfo.params : {};
+    this._routeParams$.next(routeParams || {});
     this.setActiveRoute(route);
-    this.routeParams.next(routeParams || {});
   }
 
   registerRoute<T>(route: Route<T>) {

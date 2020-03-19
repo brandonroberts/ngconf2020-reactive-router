@@ -6,12 +6,13 @@ import {
   ViewChild,
   ElementRef,
   Injector,
-  ɵrenderComponent as renderComponent
+  ɵrenderComponent as renderComponent,
+  ChangeDetectorRef
 } from "@angular/core";
 import { LoadComponent, Route } from "../router.service";
 import { RouterComponent } from "../router/router.component";
 
-import { tap, filter, distinctUntilChanged } from "rxjs/operators";
+import { tap, distinctUntilChanged } from "rxjs/operators";
 
 @Component({
   selector: "route",
@@ -26,8 +27,9 @@ export class RouteComponent implements OnInit {
   @Input() loadComponent: LoadComponent;
   route!: Route<any>;
   rendered = null;
+  params$ = this.router.routeParams$.pipe(tap(console.log));
 
-  constructor(private injector: Injector, private router: RouterComponent) {}
+  constructor(private injector: Injector, private router: RouterComponent, private ref: ChangeDetectorRef) {}
 
   ngOnInit(): void {
     // account for root level routes, don't add the basePath
@@ -42,9 +44,9 @@ export class RouteComponent implements OnInit {
     this.router.activeRoute$
       .pipe(
         distinctUntilChanged(),
-        tap(currentRoute => {
-          if (!this.rendered && currentRoute === this.route) {
-            this.loadAndRenderRoute(currentRoute);
+        tap(current => {
+          if (!this.rendered && current === this.route) {
+            this.loadAndRenderRoute(current);
           } else if (this.rendered) {
             this.clearView();
           }
@@ -75,7 +77,7 @@ export class RouteComponent implements OnInit {
   }
 
   clearView() {
-    Array.from(this.outlet.nativeElement.children).forEach(child => this.outlet.nativeElement.removeChild(child));
+    this.outlet.nativeElement.innerHTML = "";
     this.rendered = null;
   }
 }
