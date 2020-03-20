@@ -1,5 +1,5 @@
-import { Component, OnInit } from '@angular/core';
-import { RouterComponent, RouteComponent } from '@ngconf/router';
+import { Component, OnInit} from '@angular/core';
+import { RouteParams, Router } from '@ngconf/router';
 import { map } from 'rxjs/operators';
 
 @Component({
@@ -8,13 +8,12 @@ import { map } from 'rxjs/operators';
   styleUrls: ['./about.component.css']
 })
 export class AboutComponent implements OnInit {
-  me$ = this.route.params$.pipe(map(params => params['me']));
+  me$ = this.routeParams$.pipe(map(params => params['me']));
 
-  constructor(private route: RouteComponent) {
-    // router.url$.subscribe(url => { console.log('rurl', url);});
-    // router.queryParams$.subscribe(qp => { console.log('rqp', qp);});
-    // router.hash$.subscribe(hash => { console.log('rh', hash);});
-    // routeParams.subscribe(rp => console.log('rp', rp));
+  constructor(private routeParams$: RouteParams, router: Router) {
+    router.url$.subscribe(url => { console.log('rurl', url);});
+    router.queryParams$.subscribe(qp => { console.log('rqp', qp);});
+    router.hash$.subscribe(hash => { console.log('rh', hash);});
   }
 
   ngOnInit(): void {

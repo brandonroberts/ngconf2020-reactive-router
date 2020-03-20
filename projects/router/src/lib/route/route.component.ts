@@ -7,12 +7,14 @@ import {
   ElementRef,
   Injector,
   ɵrenderComponent as renderComponent,
-  ChangeDetectorRef
+  ɵmarkDirty as markDirty,
+  ɵcreateInjector as createInjector
 } from "@angular/core";
 import { LoadComponent, Route } from "../router.service";
 import { RouterComponent } from "../router/router.component";
 
-import { tap, distinctUntilChanged } from "rxjs/operators";
+import { tap, distinctUntilChanged, filter } from "rxjs/operators";
+import { RouteParams } from '../route-params.service';
 
 @Component({
   selector: "route",
@@ -27,9 +29,8 @@ export class RouteComponent implements OnInit {
   @Input() loadComponent: LoadComponent;
   route!: Route<any>;
   rendered = null;
-  params$ = this.router.routeParams$.pipe(tap(console.log));
 
-  constructor(private injector: Injector, private router: RouterComponent, private ref: ChangeDetectorRef) {}
+  constructor(private injector: Injector, private router: RouterComponent) {}
 
   ngOnInit(): void {
     // account for root level routes, don't add the basePath
@@ -58,22 +59,28 @@ export class RouteComponent implements OnInit {
   loadAndRenderRoute(route: Route<any>) {
     if (route.loadComponent) {
       route.loadComponent().then(component => {
-        this.renderView(component, this.outlet.nativeElement, this.injector);
+        this.renderView(component, this.outlet.nativeElement);
       });
     } else {
       this.renderView(
         route.component,
-        this.outlet.nativeElement,
-        this.injector
+        this.outlet.nativeElement
       );
     }
   }
 
-  renderView(component: Type<any>, host: any, injector?: Injector) {
+  renderView(component: Type<any>, host: any) {
+    const cmpInjector = createInjector({}, this.injector, [
+      { provide: RouteParams, useValue: this.router.routeParams$ }
+    ])
     this.rendered = renderComponent(component, {
       host,
-      injector
+      injector: cmpInjector
     });
+    this.router.routeParams$.pipe(
+      filter(() => !!this.rendered),
+      tap(() => markDirty(this.rendered))
+    ).subscribe();
   }
 
   clearView() {
