@@ -3,11 +3,21 @@ import { Location } from "@angular/common";
 import { match } from "path-to-regexp";
 
 import { combineLatest, Subject, BehaviorSubject } from "rxjs";
-import { tap, takeUntil, distinctUntilChanged, scan } from "rxjs/operators";
+import {
+  tap,
+  takeUntil,
+  distinctUntilChanged,
+  scan
+} from "rxjs/operators";
 
 import { Router, Route } from "../router.service";
 import { Params } from "../route-params.service";
 import { pathToRegexp } from "path-to-regexp";
+
+export interface ActiveRoute {
+  route: Route<any>;
+  params: Params;
+}
 
 @Component({
   selector: "router",
@@ -17,7 +27,7 @@ import { pathToRegexp } from "path-to-regexp";
 })
 export class RouterComponent {
   private destroy$ = new Subject();
-  private _activeRoute$ = new BehaviorSubject<Route<any>>(null);
+  private _activeRoute$ = new BehaviorSubject<ActiveRoute>(null);
   activeRoute$ = this._activeRoute$.pipe(distinctUntilChanged());
 
   private _routes$ = new BehaviorSubject<Route<any>[]>([]);
@@ -28,9 +38,6 @@ export class RouterComponent {
       return routes;
     })
   );
-
-  private _routeParams$ = new BehaviorSubject<Params>({});
-  routeParams$ = this._routeParams$.asObservable();
 
   public basePath = "";
 
@@ -52,6 +59,7 @@ export class RouterComponent {
     combineLatest(this.routes$, this.router.url$)
       .pipe(
         takeUntil(this.destroy$),
+        distinctUntilChanged(),
         tap(([routes, url]: [Route<any>[], string]) => {
           let routeToRender = null;
           for (const route of routes) {
@@ -64,7 +72,7 @@ export class RouterComponent {
           }
 
           if (!routeToRender) {
-            this.setActiveRoute(null);
+            this.setActiveRoute({ route: null, params: {} });
           }
         })
       )
@@ -93,8 +101,7 @@ export class RouterComponent {
     this.basePath = useRoute[0] || "/";
 
     const routeParams: Params = pathInfo ? pathInfo.params : {};
-    this._routeParams$.next(routeParams || {});
-    this.setActiveRoute(route);
+    this.setActiveRoute({ route, params: routeParams || {} });
   }
 
   registerRoute<T>(route: Route<T>) {
@@ -105,8 +112,8 @@ export class RouterComponent {
     return route;
   }
 
-  setActiveRoute<T>(route: Route<T>) {
-    this._activeRoute$.next(route);
+  setActiveRoute<T>(active: ActiveRoute) {
+    this._activeRoute$.next(active);
   }
 
   ngOnDestroy() {

@@ -14,6 +14,7 @@ export class AboutComponent implements OnInit {
     router.url$.subscribe(url => { console.log('rurl', url);});
     router.queryParams$.subscribe(qp => { console.log('rqp', qp);});
     router.hash$.subscribe(hash => { console.log('rh', hash);});
+    routeParams$.subscribe(params => console.log('rp', params));
   }
 
   ngOnInit(): void {
