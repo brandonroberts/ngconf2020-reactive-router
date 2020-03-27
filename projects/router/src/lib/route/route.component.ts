@@ -29,7 +29,7 @@ export class RouteComponent implements OnInit {
   @Input() path: string;
   @Input() component: Type<any>;
   @Input() loadComponent: LoadComponent;
-  route!: Route<any>;
+  route!: Route;
   rendered = null;
   private _routeParams$ = new BehaviorSubject<Params>({});
   routeParams$ = this._routeParams$.asObservable();
@@ -80,7 +80,7 @@ export class RouteComponent implements OnInit {
     this.destroy$.next();
   }
 
-  loadAndRenderRoute(route: Route<any>) {
+  loadAndRenderRoute(route: Route) {
     if (route.loadComponent) {
       route.loadComponent().then(component => {
         this.renderView(component, this.outlet.nativeElement);

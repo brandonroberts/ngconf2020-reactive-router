@@ -3,12 +3,12 @@ import { Location } from '@angular/common';
 import { BehaviorSubject } from 'rxjs';
 import { distinctUntilChanged } from 'rxjs/operators';
 
-export type LoadComponent<T = any> = () => Promise<Type<T>>;
+export type LoadComponent = () => Promise<Type<any>>;
 
-export interface Route<T> {
+export interface Route {
   path: string;
-  component?: Type<T>;
-  loadComponent?: LoadComponent<T>;
+  component?: Type<any>;
+  loadComponent?: LoadComponent;
   matcher?: RegExp;
 }
 

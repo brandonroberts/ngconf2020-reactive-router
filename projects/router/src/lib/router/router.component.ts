@@ -15,7 +15,7 @@ import { Params } from "../route-params.service";
 import { pathToRegexp } from "path-to-regexp";
 
 export interface ActiveRoute {
-  route: Route<any>;
+  route: Route;
   params: Params;
 }
 
@@ -30,7 +30,7 @@ export class RouterComponent {
   private _activeRoute$ = new BehaviorSubject<ActiveRoute>(null);
   activeRoute$ = this._activeRoute$.pipe(distinctUntilChanged());
 
-  private _routes$ = new BehaviorSubject<Route<any>[]>([]);
+  private _routes$ = new BehaviorSubject<Route[]>([]);
   routes$ = this._routes$.pipe(
     scan((routes, route) => {
       routes = routes.concat(route);
@@ -60,7 +60,7 @@ export class RouterComponent {
       .pipe(
         takeUntil(this.destroy$),
         distinctUntilChanged(),
-        tap(([routes, url]: [Route<any>[], string]) => {
+        tap(([routes, url]: [Route[], string]) => {
           let routeToRender = null;
           for (const route of routes) {
             routeToRender = this.findRouteMatch(route, url);
@@ -79,7 +79,7 @@ export class RouterComponent {
       .subscribe();
   }
 
-  findRouteMatch(route: Route<any>, url: string) {
+  findRouteMatch(route: Route, url: string) {
     let matchedRoute = route.matcher ? route.matcher.exec(url) : null;
 
     if (matchedRoute) {
@@ -95,7 +95,7 @@ export class RouterComponent {
     }
   }
 
-  setRoute(url: string, route: Route<any>, matchedRoute: RegExpExecArray) {
+  setRoute(url: string, route: Route, matchedRoute: RegExpExecArray) {
     const useRoute = matchedRoute;
     const pathInfo = match(route.path)(url);
     this.basePath = useRoute[0] || "/";
@@ -104,7 +104,7 @@ export class RouterComponent {
     this.setActiveRoute({ route, params: routeParams || {} });
   }
 
-  registerRoute<T>(route: Route<T>) {
+  registerRoute(route: Route) {
     const normalizedPath = this.location.normalize(route.path);
     const routeRegex = pathToRegexp(normalizedPath);
     route.matcher = route.matcher || routeRegex;
@@ -112,7 +112,7 @@ export class RouterComponent {
     return route;
   }
 
-  setActiveRoute<T>(active: ActiveRoute) {
+  setActiveRoute(active: ActiveRoute) {
     this._activeRoute$.next(active);
   }
 
