@@ -7,7 +7,8 @@ import {
   tap,
   takeUntil,
   distinctUntilChanged,
-  scan
+  scan,
+  debounceTime
 } from "rxjs/operators";
 
 import { Router, Route } from "../router.service";
@@ -53,10 +54,10 @@ export class RouterComponent {
     private router: Router,
     private location: Location,
     @SkipSelf() @Optional() public parentRouterComponent: RouterComponent
-  ) {}
+  ) { }
 
   ngOnInit() {
-    combineLatest(this.routes$, this.router.url$)
+    combineLatest(this.routes$.pipe(debounceTime(1)), this.router.url$)
       .pipe(
         takeUntil(this.destroy$),
         distinctUntilChanged(),

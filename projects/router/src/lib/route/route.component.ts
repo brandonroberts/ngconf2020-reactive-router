@@ -51,6 +51,7 @@ export class RouteComponent implements OnInit {
     this.router.activeRoute$
       .pipe(
         takeUntil(this.destroy$),
+        filter(ar => ar !== null),
         distinctUntilChanged(),
         tap(current => {
           if (current.route === this.route) {
