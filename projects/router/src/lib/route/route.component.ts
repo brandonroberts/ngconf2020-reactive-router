@@ -13,9 +13,9 @@ import {
 import { LoadComponent, Route } from "../router.service";
 import { RouterComponent } from "../router/router.component";
 
-import { tap, distinctUntilChanged, filter, takeUntil } from "rxjs/operators";
+import { tap, distinctUntilChanged, filter, takeUntil, mergeMap } from "rxjs/operators";
 import { RouteParams, Params } from "../route-params.service";
-import { Subject, BehaviorSubject } from "rxjs";
+import { Subject, BehaviorSubject, merge, of } from "rxjs";
 
 @Component({
   selector: "route",
@@ -48,33 +48,35 @@ export class RouteComponent implements OnInit {
       loadComponent: this.loadComponent
     });
 
-    this.router.activeRoute$
+    const activeRoute$ = this.router.activeRoute$
       .pipe(
-        takeUntil(this.destroy$),
         filter(ar => ar !== null),
         distinctUntilChanged(),
-        tap(current => {
+        mergeMap(current => {
           if (current.route === this.route) {
             this._routeParams$.next(current.params);
 
             if (!this.rendered) {
-              this.loadAndRenderRoute(current.route);
+              return this.loadAndRenderRoute(current.route);
             }
           } else if (this.rendered) {
-            this.clearView();
+            return of(this.clearView());
           }
-        })
-      )
-      .subscribe();
 
-    this._routeParams$
+          return of(null);
+        })
+      );
+
+    const routeParams$ = this._routeParams$
       .pipe(
-        takeUntil(this.destroy$),
         distinctUntilChanged(),
         filter(() => !!this.rendered),
         tap(() => markDirty(this.rendered))
-      )
-      .subscribe();
+      );
+    
+    merge(activeRoute$, routeParams$).pipe(
+      takeUntil(this.destroy$),
+    ).subscribe();
   }
 
   ngOnDestroy() {
@@ -83,11 +85,11 @@ export class RouteComponent implements OnInit {
 
   loadAndRenderRoute(route: Route) {
     if (route.loadComponent) {
-      route.loadComponent().then(component => {
-        this.renderView(component, this.outlet.nativeElement);
+      return route.loadComponent().then(component => {
+        return this.renderView(component, this.outlet.nativeElement);
       });
     } else {
-      this.renderView(route.component, this.outlet.nativeElement);
+      return of(this.renderView(route.component, this.outlet.nativeElement));
     }
   }
 
@@ -100,10 +102,14 @@ export class RouteComponent implements OnInit {
       host,
       injector: cmpInjector
     });
+
+    return this.rendered;
   }
 
   clearView() {
     this.outlet.nativeElement.innerHTML = "";
     this.rendered = null;
+
+    return this.rendered;
   }
 }
