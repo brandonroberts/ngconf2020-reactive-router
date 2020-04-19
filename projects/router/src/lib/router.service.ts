@@ -1,5 +1,5 @@
 import { Injectable, Inject } from '@angular/core';
-import { Location } from '@angular/common';
+import { Location, PlatformLocation } from '@angular/common';
 
 import { BehaviorSubject } from 'rxjs';
 import { distinctUntilChanged } from 'rxjs/operators';
@@ -9,7 +9,7 @@ import { URL_PARSER, UrlParser } from './url-parser';
   providedIn: 'root'
 })
 export class Router {
-  private _url$ = new BehaviorSubject(window.location.href);
+  private _url$ = new BehaviorSubject<string>(this.getLocation());
   url$ = this._url$.pipe(distinctUntilChanged());
 
   private _queryParams$ = new BehaviorSubject({});
@@ -20,16 +20,18 @@ export class Router {
 
   constructor(
     private location: Location,
+    private platformLocation: PlatformLocation,
     @Inject(URL_PARSER) private urlParser: UrlParser
   ) {
     this.location.onUrlChange(() => {
-      this.nextState(window.location.href);
-    });
-    this.location.subscribe(() => {
-      this.nextState(window.location.href);
+      this.nextState(this.getLocation());
     });
 
-    this.nextState(window.location.href);
+    this.location.subscribe(() => {
+      this.nextState(this.getLocation());
+    });
+
+    this.nextState(this.getLocation());
   }
 
   go(url: string, queryParams?: string) {
@@ -38,6 +40,10 @@ export class Router {
 
   getExternalUrl(url: string) {
     return this.location.prepareExternalUrl(url);
+  }
+
+  private getLocation() {
+    return this.platformLocation.href;
   }
 
   private nextState(path: string) {
