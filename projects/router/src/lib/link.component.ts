@@ -49,11 +49,6 @@ export class LinkTo {
   private _updateHref() {
     let path = this._cleanUpHref(this._href);
 
-    if (path.substr(0, 1) !== '/') {
-      path = this.routerComp ? `${this.routerComp.basePath}/${path}` : path;
-      this._href = path;
-    }
-
     this.linkHref = this.router.getExternalUrl(path);
     this.hrefUpdated.emit(this.linkHref);
   }
