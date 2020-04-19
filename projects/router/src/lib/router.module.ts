@@ -1,9 +1,9 @@
 import { NgModule, ModuleWithProviders } from '@angular/core';
 import { LocationStrategy, PathLocationStrategy } from '@angular/common';
 
-import { RouterComponent } from './router/router.component';
-import { RouteComponent } from './route/route.component';
-import { LinkTo } from './link/link.component';
+import { RouterComponent } from './router.component';
+import { RouteComponent } from './route.component';
+import { LinkTo } from './link.component';
 
 const components = [
   RouterComponent,

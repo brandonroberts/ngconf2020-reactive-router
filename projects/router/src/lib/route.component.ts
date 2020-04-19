@@ -10,12 +10,14 @@ import {
   ɵmarkDirty as markDirty,
   ɵcreateInjector as createInjector
 } from "@angular/core";
-import { LoadComponent, Route } from "../router.service";
-import { RouterComponent } from "../router/router.component";
 
-import { tap, distinctUntilChanged, filter, takeUntil, mergeMap } from "rxjs/operators";
-import { RouteParams, Params } from "../route-params.service";
 import { Subject, BehaviorSubject, merge, of } from "rxjs";
+import { tap, distinctUntilChanged, filter, takeUntil, mergeMap } from "rxjs/operators";
+
+import { LoadComponent, Route } from "./route";
+import { RouteParams, Params } from "./route-params.service";
+import { RouterComponent } from "./router.component";
+
 
 @Component({
   selector: "route",

@@ -1,6 +1,6 @@
 import { Directive, HostBinding, HostListener, Input, Output, EventEmitter, Optional } from  '@angular/core';
-import { Router } from '../router.service';
-import { RouterComponent } from '../router/router.component';
+import { Router } from './router.service';
+import { RouterComponent } from './router.component';
 
 /**
  * The LinkTo directive links to routes in your app

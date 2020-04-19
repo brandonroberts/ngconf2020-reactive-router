@@ -1,16 +1,9 @@
-import { Injectable, Type } from '@angular/core';
+import { Injectable, Inject } from '@angular/core';
 import { Location } from '@angular/common';
+
 import { BehaviorSubject } from 'rxjs';
 import { distinctUntilChanged } from 'rxjs/operators';
-
-export type LoadComponent = () => Promise<Type<any>>;
-
-export interface Route {
-  path: string;
-  component?: Type<any>;
-  loadComponent?: LoadComponent;
-  matcher?: RegExp;
-}
+import { URL_PARSER, UrlParser } from './url-parser';
 
 @Injectable({
   providedIn: 'root'
@@ -25,7 +18,10 @@ export class Router {
   private _hash$ = new BehaviorSubject('');
   hash$ = this._hash$.pipe(distinctUntilChanged());
 
-  constructor(private location: Location) {
+  constructor(
+    private location: Location,
+    @Inject(URL_PARSER) private urlParser: UrlParser
+  ) {
     this.location.onUrlChange(() => {
       this.nextState(window.location.href);
     });
@@ -41,7 +37,7 @@ export class Router {
   }
 
   getExternalUrl(url: string) {
-    this.location.prepareExternalUrl(url);
+    return this.location.prepareExternalUrl(url);
   }
 
   private nextState(path: string) {
@@ -52,7 +48,7 @@ export class Router {
   }
 
   private _parseUrl(path: string): URL {
-    return new URL(path);
+    return this.urlParser(path);
   }
 
   private _nextUrl(url: string) {

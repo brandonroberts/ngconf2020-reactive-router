@@ -1,6 +1,5 @@
 import { Component, SkipSelf, Optional } from "@angular/core";
 import { Location } from "@angular/common";
-import { match } from "path-to-regexp";
 
 import { combineLatest, Subject, BehaviorSubject } from "rxjs";
 import {
@@ -11,14 +10,11 @@ import {
   debounceTime
 } from "rxjs/operators";
 
-import { Router, Route } from "../router.service";
-import { Params } from "../route-params.service";
-import { pathToRegexp } from "path-to-regexp";
+import { pathToRegexp, match } from "path-to-regexp";
 
-export interface ActiveRoute {
-  route: Route;
-  params: Params;
-}
+import { Route, ActiveRoute } from './route';
+import { Router } from "./router.service";
+import { Params } from "./route-params.service";
 
 @Component({
   selector: "router",
