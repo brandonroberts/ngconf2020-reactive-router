@@ -1,9 +1,9 @@
-import { Injectable, Inject } from '@angular/core';
+import { Injectable } from '@angular/core';
 import { Location, PlatformLocation } from '@angular/common';
 
 import { BehaviorSubject } from 'rxjs';
 import { distinctUntilChanged } from 'rxjs/operators';
-import { URL_PARSER, UrlParser } from './url-parser';
+import { UrlParser } from './url-parser';
 
 @Injectable({
   providedIn: 'root'
@@ -21,7 +21,7 @@ export class Router {
   constructor(
     private location: Location,
     private platformLocation: PlatformLocation,
-    @Inject(URL_PARSER) private urlParser: UrlParser
+    private urlParser: UrlParser
   ) {
     this.location.onUrlChange(() => {
       this.nextState(this.getLocation());
@@ -54,7 +54,7 @@ export class Router {
   }
 
   private _parseUrl(path: string): URL {
-    return this.urlParser(path);
+    return this.urlParser.parse(path);
   }
 
   private _nextUrl(url: string) {

@@ -4,6 +4,7 @@ import { LocationStrategy, PathLocationStrategy } from '@angular/common';
 import { RouterComponent } from './router.component';
 import { RouteComponent } from './route.component';
 import { LinkTo } from './link.component';
+import { UrlParser } from './url-parser';
 
 const components = [
   RouterComponent,
@@ -22,6 +23,7 @@ export class RouterModule {
       ngModule: RouterModule,
       providers: [
         Location,
+        UrlParser,
         { provide: LocationStrategy, useClass: PathLocationStrategy }
       ]
     }
