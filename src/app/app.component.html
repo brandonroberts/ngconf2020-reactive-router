@@ -1,11 +1,11 @@
 <!-- <button (click)="goHome()">Home</button>
 <button (click)="goAbout()">About</button> -->
 
-<a [linkTo]="'/'">Home</a><br/>
-<a [linkTo]="'/about'">About</a><br/>
-<a [linkTo]="'/lazy'">Lazy</a><br/>
-<a [linkTo]="'/about/brandon'" [queryParams]="'test=1'">About 2</a><br/>
-<a [linkTo]="'/about/mike'">About 3</a>
+<a linkTo="/">Home</a><br/>
+<a linkTo="/about">About</a><br/>
+<a linkTo="/lazy">Lazy</a><br/>
+<a linkTo="/about/brandon" [queryParams]="'test=1'">About 2</a><br/>
+<a linkTo="/about/mike">About 3</a>
 
 <router>
   <route path="/about/:me" [component]="AboutComponent"></route>
