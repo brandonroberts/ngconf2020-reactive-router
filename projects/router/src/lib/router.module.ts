@@ -22,7 +22,6 @@ export class RouterModule {
     return {
       ngModule: RouterModule,
       providers: [
-        Location,
         UrlParser,
         { provide: LocationStrategy, useClass: PathLocationStrategy }
       ]

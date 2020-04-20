@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { Location, PlatformLocation } from '@angular/common';
+import { PlatformLocation, LocationStrategy } from '@angular/common';
 
 import { BehaviorSubject } from 'rxjs';
 import { distinctUntilChanged } from 'rxjs/operators';
@@ -14,28 +14,32 @@ export class Router {
 
   private _queryParams$ = new BehaviorSubject({});
   queryParams$ = this._queryParams$.pipe(distinctUntilChanged());
-  
+
   private _hash$ = new BehaviorSubject('');
   hash$ = this._hash$.pipe(distinctUntilChanged());
 
   constructor(
-    private location: Location,
+    private location: LocationStrategy,
     private platformLocation: PlatformLocation,
     private urlParser: UrlParser
   ) {
-    this.location.onUrlChange(() => {
-      this.nextState(this.getLocation());
-    });
-
-    this.location.subscribe(() => {
+    this.location.onPopState(() => {
       this.nextState(this.getLocation());
     });
 
     this.nextState(this.getLocation());
   }
 
-  go(url: string, queryParams?: string) {
-    this.location.go(this.location.prepareExternalUrl(url), queryParams);
+  go(url: string, queryParams: string = '') {
+    this.location.pushState(null, '', this.location.prepareExternalUrl(url), queryParams);
+
+    this.nextState(this.getLocation());
+  }
+
+  replace(url: string, queryParams?: string) {
+    this.location.replaceState(null, '', this.location.prepareExternalUrl(url), queryParams);
+
+    this.nextState(this.getLocation());
   }
 
   getExternalUrl(url: string) {
@@ -46,8 +50,8 @@ export class Router {
     return this.platformLocation.href;
   }
 
-  private nextState(path: string) {
-    const parsedUrl = this._parseUrl(path);
+  private nextState(url: string) {
+    const parsedUrl = this._parseUrl(url);
     this._nextUrl(parsedUrl.pathname);
     this._nextQueryParams(parsedUrl.searchParams);
     this._nextHash(parsedUrl.hash ? parsedUrl.hash.split('#')[0] : '');
@@ -58,7 +62,7 @@ export class Router {
   }
 
   private _nextUrl(url: string) {
-    this._url$.next(this.location.normalize(url));
+    this._url$.next(url);
   }
 
   private _nextQueryParams(params: URLSearchParams) {
